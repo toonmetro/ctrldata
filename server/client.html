@@ -1,0 +1,79 @@
+<html>
+<head>
+  <title>Simple client</title>
+
+  <script type="text/javascript">
+
+    var ws;
+    
+    function init() {                                  // установим связь по WS, со всеми обработчиками
+
+      ws = new WebSocket("ws://127.0.0.1:9001/");      //!!! хост с портом поставь актуальный
+
+      ws.onopen = function() {
+        output("onopen");
+      };
+      
+      ws.onmessage = function(e) {
+        output("onmessage: " + e.data);
+      };
+      
+      ws.onclose = function() {
+        output("onclose");
+        if (e.wasClean) {
+          output("onclose. Соединение закрыто чисто");
+        } else {
+          output("onclose. Обрыв соединения");        // например, "убит" процесс сервера
+        }
+        output('         Код: ' + e.code + ' причина: ' + e.reason);
+      };
+
+      ws.onerror = function(e) {
+        output("onerror");
+        console.log(e)
+      };
+
+    }
+    
+    function onSubmit() {
+      var input = document.getElementById("input");      
+      ws.send(input.value);                            // ws.send
+      output("send: " + input.value);
+      input.value = "";
+      input.focus();
+    }
+
+    function onSubmitAll() {
+      var input = document.getElementById("input_toall");      
+      ws.send(input.value);                            // ws.send
+      output("send to all: " + input.value);
+      input.value = "";
+      input.focus();
+    }
+    
+    function onCloseClick() {
+      ws.close();
+    }
+    
+    function output(str) {                             //!!! сделай логирование на клиенте, при дебаге
+      var log = document.getElementById("log");
+      var escaped = str.replace(/&/, "&amp;").replace(/</, "&lt;").replace(/>/, "&gt;").replace(/"/, "&quot;"); // "
+      log.innerHTML = escaped + "<br>" + log.innerHTML;
+    }
+
+  </script>
+</head>
+<body onload="init();">
+  <form onsubmit="onSubmit(); return false;">
+    <input type="text" id="input">
+    <input type="submit" value="Send">
+    <button onclick="onCloseClick(); return false;">close</button>
+  </form>
+  <form onsubmit="onSubmitAll(); return false;">
+    <input type="text" id="input_toall">
+    <input type="submit" value="Send to All">
+    <button onclick="onCloseClick(); return false;">close</button>
+  </form>
+  <div id="log"></div>
+</body>
+</html>
